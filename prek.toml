@@ -1,0 +1,41 @@
+# Configuration file for `prek`, a git hook framework written in Rust.
+# See https://prek.j178.dev for more information.
+# :schema https://www.schemastore.org/prek.json
+
+[[repos]]
+repo = "https://github.com/pre-commit/pre-commit-hooks"
+rev = "v6.0.0"
+hooks = [
+  {id = "trailing-whitespace"},
+  {id = "end-of-file-fixer", exclude = '^.*\.egg-info/'},
+  {id = "check-toml"},
+  {id = "check-added-large-files"},
+  {id = "debug-statements"},
+]
+
+[[repos]]
+repo = "https://github.com/adrienverge/yamllint"
+rev = "v1.38.0"
+hooks = [
+  {id = "yamllint", args = ["--strict"], exclude = '^.*package-lock\.yml$'},
+]
+
+[[repos]]
+repo = "https://github.com/pappasam/toml-sort"
+rev = "v0.24.4"
+hooks = [
+  {id = "toml-sort-fix", args = [
+    "--trailing-comma-inline-array",
+    "--in-place",
+  ]},
+]
+
+[[repos]]
+repo = "https://github.com/tconbeer/sqlfmt"
+rev = "v0.32.0"
+hooks = [
+  {id = "sqlfmt", args = [
+    "--dialect",
+    "polyglot",
+  ], language_version = "python", additional_dependencies = [".[jinjafmt]"]},
+]
