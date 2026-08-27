@@ -1,5 +1,22 @@
 use std::io::BufRead;
 
+/// Reads a single LSP message from stdin.
+///
+/// LSP uses JSON-RPC 2.0 with headers (standard across all clients: Neovim, VSCode, Emacs etc.):
+/// ```text
+/// Content-Length:`29\r\n
+/// Content-Type: application/vscode-jsonrpc; charset=utf-8\r\n
+/// \r\n
+/// {"jsonrpc":"2.0","id":1}
+/// ```
+///
+/// This function:
+/// 1. SKips all headers (reads until empty line)
+/// 2. Reads the JSON body (next line)
+/// 3. Returns the JSON string
+///
+/// Works with: Neovim (nvim-lspconfig), VSCode, Emacs (lsp-mode), Sublime etc.
+/// `
 fn read_lsp_message(reader: &mut dyn BufRead) -> Option<String> {
     // Read headers until empty line
     loop {
