@@ -1,4 +1,5 @@
 mod definition;
+mod lsp;
 mod parser;
 use std::env;
 use std::fs;
