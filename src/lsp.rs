@@ -1,3 +1,4 @@
+use serde_json::{Value, from_str};
 use std::io::BufRead;
 
 /// Reads a single LSP message from stdin.
@@ -34,6 +35,12 @@ fn read_lsp_message(reader: &mut dyn BufRead) -> Option<String> {
     Some(body)
 }
 
+pub fn parse_and_dispatch(json_str: &str) -> Option<String> {
+    let json_value: Value = from_str(json_str).ok()?;
+    let method_field = json_value.get("method")?.as_str()?;
+    Some(method_field.to_string())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -44,5 +51,12 @@ mod tests {
         let mut cursor = Cursor::new(input);
         let message = read_lsp_message(&mut cursor);
         assert_eq!(message, Some(r#"{"jsonrpc":"2.0","id":1}"#.to_string()));
+    }
+
+    #[test]
+    fn test_parse_and_dispatch_extract_method() {
+        let json = r#"{"jsonrpc": "2.0", "method": "initialize", "id": 1}"#;
+        let result = parse_and_dispatch(json);
+        assert_eq!(result, Some("initialize".to_string()));
     }
 }
