@@ -1,4 +1,4 @@
-use serde_json::{Value, from_str};
+use serde_json::{Value, from_str, json};
 use std::io::BufRead;
 
 /// Reads a single LSP message from stdin.
@@ -35,6 +35,15 @@ fn read_lsp_message(reader: &mut dyn BufRead) -> Option<String> {
     Some(body)
 }
 
+fn handle_initialize(json: &Value) -> Value {
+    // Return server capabilities
+    json!({
+        "capabilities": {
+            "definitionProvider": true
+        }
+    })
+}
+
 pub fn parse_and_dispatch(json_str: &str) -> Option<String> {
     let json_value: Value = from_str(json_str).ok()?;
     let method_field = json_value.get("method")?.as_str()?;
@@ -58,5 +67,14 @@ mod tests {
         let json = r#"{"jsonrpc": "2.0", "method": "initialize", "id": 1}"#;
         let result = parse_and_dispatch(json);
         assert_eq!(result, Some("initialize".to_string()));
+    }
+
+    #[test]
+    fn test_handle_initialize() {
+        let json_str = r#"{"jsonrpc": "2.0", "method": "initialize", "id": 1, "params": {}}"#;
+        let json: Value = from_str(json_str).unwrap();
+        let result = handle_initialize(&json);
+        assert!(result.get("capabilities").is_some());
+        assert_eq!(result["capabilities"]["definitionProvider"], true);
     }
 }
