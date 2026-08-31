@@ -44,6 +44,45 @@ fn handle_initialize(json: &Value) -> Value {
     })
 }
 
+fn handle_text_document_definition(json: &Value) -> Value {
+    // get params
+    let params = match json.get("params") {
+        Some(p) => p,
+        None => return json!(null),
+    };
+
+    // get uri
+    let uri = match params
+        .get("textDocument")
+        .and_then(|td| td.get("uri"))
+        .and_then(|u| u.as_str())
+    {
+        Some(u) => u,
+        None => return json!(null),
+    };
+
+    // get line and character from position
+    let line = match params
+        .get("position")
+        .and_then(|p| p.get("line"))
+        .and_then(|l| l.as_u64())
+    {
+        Some(l) => l as u32,
+        None => return json!(null),
+    };
+
+    let character = match params
+        .get("position")
+        .and_then(|p| p.get("character"))
+        .and_then(|c| c.as_u64())
+    {
+        Some(c) => c as u32,
+        None => return json!(null),
+    };
+
+    json!(null) // placeholder
+}
+
 pub fn parse_and_dispatch(json_str: &str) -> Option<String> {
     let json_value: Value = from_str(json_str).ok()?;
     let method_field = json_value.get("method")?.as_str()?;
@@ -76,5 +115,14 @@ mod tests {
         let result = handle_initialize(&json);
         assert!(result.get("capabilities").is_some());
         assert_eq!(result["capabilities"]["definitionProvider"], true);
+    }
+
+    #[test]
+    fn test_handle_text_document_definition_extract_params() {
+        let json_str = r#"{"jsonrpc":"2.0", "method":"textDocument/definition","id":1,"params":{"textDocument":{"uri":"file:///test.sql"},"position":{"line":0,"character":10}}}"#;
+        let json: Value = from_str(json_str).unwrap();
+        let result = handle_text_document_definition(&json);
+        // assert null for now
+        assert_eq!(result, json!(null));
     }
 }
