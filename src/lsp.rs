@@ -80,7 +80,32 @@ fn handle_text_document_definition(json: &Value) -> Value {
         None => return json!(null),
     };
 
-    json!(null) // placeholder
+    // read file content
+    let file_path = uri.replace("file://", "");
+    let content = match std::fs::read_to_string(&file_path) {
+        Ok(c) => c,
+        Err(_) => return json!(null),
+    };
+
+    // call definition handler
+    match crate::definition::handle_definition(&content, line, character) {
+        Some(location) => {
+            json!({
+                "uri": location.uri.to_string(),
+                "range": {
+                    "start": {
+                        "line": location.range.start.line,
+                        "character": location.range.start.character
+                    },
+                    "end": {
+                        "line": location.range.end.line,
+                        "character": location.range.end.character
+                }
+            }
+            })
+        }
+        None => json!(null),
+    }
 }
 
 pub fn parse_and_dispatch(json_str: &str) -> Option<String> {
